@@ -138,6 +138,18 @@
 
     /* SECTION COMMON */
     section { padding: 6rem 5rem; }
+    @media (min-width: 1300px) {
+      section {
+        padding-left: max(5rem, calc((100vw - 1200px) / 2));
+        padding-right: max(5rem, calc((100vw - 1200px) / 2));
+      }
+    }
+    @media (min-width: 1300px) {
+      section {
+        padding-left: max(5rem, calc((100vw - 1200px) / 2));
+        padding-right: max(5rem, calc((100vw - 1200px) / 2));
+      }
+    }
     .section-header {
       display: flex; align-items: baseline; gap: 2rem;
       margin-bottom: 4rem;
@@ -289,7 +301,16 @@
     }
     .product-overlay a svg { width: 16px; height: 16px; }
 
-    .product-info {}
+    .product-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .product-name { order: 1; }
+    .product-price { order: 2; }
+    .accordion-toggle { order: 3; }
+    .accordion-body { order: 4; }
+    .product-info > div:not(.accordion-body) { order: 5; display: none; }
+    .mobile-add-btn { order: 6; }
     .product-name {
       font-family: var(--font-display);
       font-size: 1.2rem;
@@ -323,6 +344,10 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 3rem;
+    }
+    #nosotros .process-steps {
+      display: flex;
+      justify-content: center;
     }
     .step-num {
       font-family: var(--font-display);
@@ -857,7 +882,7 @@
 #lb-prev { left: 1rem; }
 #lb-next { right: 1rem; }
 #lb-prev:hover, #lb-next:hover { background: rgba(255,255,255,0.35); }
-.product-image { cursor: zoom-in; touch-action: manipulation; }
+.product-image { cursor: pointer; touch-action: manipulation; }
 .whatsapp-float {
   position: fixed;
   bottom: 24px;
@@ -1018,7 +1043,41 @@
     @media (max-width: 900px) {
       .hamburger { display: flex; }
     }
-  </style>
+  
+    /* ── PRODUCT PAGE ── */
+    /* Hide gallery arrows and product-tag on cards - only show in product detail */
+    .product-card .product-image button:not(.add-cart-btn) { display: none !important; }
+    .product-price { cursor: default; }
+    .product-card { cursor: pointer; position: relative; }
+    .product-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid var(--bark);
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .product-card:hover::after { opacity: 1; }
+    .cswatch, .mobile-add-btn, .add-cart-btn { position: relative; }
+    #product-detail-page {
+      display: none;
+      min-height: 100vh;
+      padding: 8rem 5rem 5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    #pdp-img-wrap { aspect-ratio: 3/4; overflow: hidden; }
+    #pdp-img { width:100%; height:100%; object-fit:cover; display:block; }
+    #pdp-info { display:flex; flex-direction:column; gap:1.25rem; padding-top:1rem; }
+    @media (max-width: 700px) {
+      #product-detail-page { grid-template-columns: 1fr !important; gap:1.5rem; padding:6rem 1.5rem 3rem; }
+    }
+</style>
 </head>
 <body>
 
@@ -2574,13 +2633,11 @@
 </section>
 <!-- SOBRE NOSOTROS -->
 <section class="process" id="nosotros">
-  <div class="section-header">
-    <h2 class="section-title">✨ El corazón detrás de Quimera Bags</h2>
-    <div class="section-line"></div>
-    <span class="section-num">03</span>
+  <div class="section-header" style="justify-content:center;">
+    <h2 class="section-title">El corazón detrás de Quimera Bags</h2>
   </div>
   <div class="process-steps">
-    <p style="color:var(--stone);font-size:0.82rem;line-height:1.7;max-width:680px;margin:0 auto;text-align:center;">
+    <p style="color:var(--cream);font-size:1.15rem;line-height:1.9;max-width:680px;margin:0 auto;text-align:center;">
       Siempre me apasionó la costura, pero cuando descubrí la marroquinería entendí mi verdadero propósito: crear productos de industria nacional que hagan tu vida más fácil.<br><br>
       No diseñamos solo bolsos y carteras lindas; creamos accesorios reforzados, únicos y pensados para resolver los desafíos diarios de hombres y mujeres que no se detienen. Nuestra meta es que lleves tu mundo organizado con total comodidad, seguridad y estilo.<br><br>
       Somos un emprendimiento familiar y nos acompaña el orgullo de apostar por el trabajo argentino, uniendo fuerzas para brindarte lo mejor en cada costura. Más que un accesorio, queremos ser tu aliada de cada día. ¡Gracias por elegir la producción nacional y confiar en nuestro trabajo!
@@ -3391,70 +3448,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const productImage = card.querySelector('.product-image');
     if (productImage) productImage.after(mobileBtn);
 
-    // Tap imagen -> abre lightbox
-    const productImgWrap = card.querySelector('.product-image');
-    if (productImgWrap) {
-      productImgWrap.addEventListener('click', function(e) {
-        if (e.target.closest('button')) return;
-        const img = card.querySelector('.product-image img');
-        if (!img) return;
-        e.stopPropagation();
-        lbCard = card;
-        lbImg.src = img.src;
-        var hasCar = Array.from(card.querySelectorAll('.product-image button')).some(function(b){ var t=b.textContent.trim(); return t==='‹'||t==='›'||t==='‹'||t==='›'; });
-        lbPrev.style.display = hasCar ? 'flex' : 'none';
-        lbNext.style.display = hasCar ? 'flex' : 'none';
-        lightbox.style.display = 'flex';
-      });
-    }
-  });
-  // Lightbox con navegacion por swipe / flechas / teclado
-  var lbCard = null;
-  const lightbox = document.createElement('div');
-  lightbox.id = 'img-lightbox';
-  const lbPrev = document.createElement('button');
-  lbPrev.id = 'lb-prev'; lbPrev.textContent = '‹';
-  const lbImg = document.createElement('img');
-  const lbNext = document.createElement('button');
-  lbNext.id = 'lb-next'; lbNext.textContent = '›';
-  lbPrev.addEventListener('click', function(e) { e.stopPropagation(); lbNav(-1); });
-  lbNext.addEventListener('click', function(e) { e.stopPropagation(); lbNav(1); });
-  lightbox.appendChild(lbPrev);
-  lightbox.appendChild(lbImg);
-  lightbox.appendChild(lbNext);
-  lightbox.addEventListener('click', function(e) {
-    if (e.target !== lbPrev && e.target !== lbNext) {
-      lightbox.style.display = 'none'; lbCard = null;
-    }
-  });
-  var lbTouchX = 0;
-  lightbox.addEventListener('touchstart', function(e) {
-    lbTouchX = e.touches[0].clientX;
-  }, { passive: true });
-  lightbox.addEventListener('touchend', function(e) {
-    var dx = e.changedTouches[0].clientX - lbTouchX;
-    if (Math.abs(dx) > 40) { e.preventDefault(); lbNav(dx < 0 ? 1 : -1); }
-  });
-  document.addEventListener('keydown', function(e) {
-    if (lightbox.style.display !== 'flex') return;
-    if (e.key === 'ArrowLeft') lbNav(-1);
-    if (e.key === 'ArrowRight') lbNav(1);
-    if (e.key === 'Escape') { lightbox.style.display = 'none'; lbCard = null; }
-  });
-  function lbNav(dir) {
-    if (!lbCard) return;
-    var btns = Array.from(lbCard.querySelectorAll('.product-image button'));
-    var arrow = btns.find(function(b) {
-      return b.textContent.trim() === (dir < 0 ? '‹' : '›');
-    });
-    if (!arrow) return;
-    arrow.click();
-    setTimeout(function() {
-      var imgEl = lbCard.querySelector('.product-image img');
-      if (imgEl) lbImg.src = imgEl.src;
-    }, 200);
-  }
-  document.body.appendChild(lightbox);
+
 });
 
 
@@ -3519,6 +3513,95 @@ document.addEventListener('DOMContentLoaded', function() {
     grid.style.visibility = 'visible';
   });
 
+
+  // ── PRODUCT DETAIL PAGE ──
+  var _pdpCard = null;
+
+  function showProductPage(card) {
+    _pdpCard = card;
+    var name  = card.querySelector(".product-name").textContent.trim();
+    var price = card.querySelector(".product-price").textContent.trim();
+    var descEl = card.querySelector(".accordion-body-inner");
+    var imgEl  = card.querySelector(".product-image img");
+    var imgBg  = card.querySelector(".product-image").style.background;
+    var colorSel = card.querySelector(".product-info > div:not(.accordion-body)");
+
+    document.getElementById("pdp-name").textContent  = name;
+    document.getElementById("pdp-price").textContent = price;
+    document.getElementById("pdp-desc").innerHTML    = descEl ? descEl.innerHTML : "";
+    var pdpImg = document.getElementById("pdp-img");
+    pdpImg.src = imgEl.src;
+    document.getElementById("pdp-img-wrap").style.background = imgBg;
+
+    var colorContainer = document.getElementById("pdp-colors");
+    colorContainer.innerHTML = "";
+    if (colorSel) {
+      var clone = colorSel.cloneNode(true);
+      clone.querySelectorAll(".cswatch").forEach(function(btn) {
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          document.getElementById("pdp-img").src = this.dataset.src;
+          clone.querySelectorAll(".cswatch").forEach(function(b){ b.classList.remove("active"); });
+          this.classList.add("active");
+          var nameEl = clone.querySelector("[id$=\"-color-name\"]");
+          if (nameEl) nameEl.textContent = this.dataset.color;
+        };
+      });
+      colorContainer.appendChild(clone);
+    }
+
+    // Show product page, hide catalog
+    document.querySelectorAll("section, .hero").forEach(function(el){ el.style.display="none"; });
+    var pdp = document.getElementById("product-detail-page");
+    pdp.style.display = "grid";
+    window.scrollTo(0,0);
+  }
+
+  function addToCartFromPage() {
+    if (!_pdpCard) return;
+    var modalImg = document.getElementById("pdp-img");
+    var cardImg  = _pdpCard.querySelector(".product-image img");
+    if (cardImg) cardImg.src = modalImg.src;
+    var btn = _pdpCard.querySelector(".add-cart-btn, .mobile-add-btn");
+    if (btn) btn.click();
+    var msg = document.getElementById("pdp-added-msg");
+    msg.style.display = "block";
+    setTimeout(function(){ msg.style.display="none"; }, 2500);
+  }
+
+  // Click on product image or name -> open product page in new tab
+  document.querySelectorAll(".product-card").forEach(function(card) {
+    var url = "?product=" + encodeURIComponent(card.dataset.name);
+    function openPdp() {
+      var a = document.createElement("a");
+      a.href = url; a.target = "_blank"; a.style.display = "none";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    var imgDiv = card.querySelector(".product-image");
+    if (imgDiv) {
+      imgDiv.addEventListener("click", function(e) {
+        if (e.target.closest("button")) return;
+        openPdp();
+      });
+    }
+    var nameEl = card.querySelector(".product-name");
+    if (nameEl) {
+      nameEl.style.cursor = "pointer";
+      nameEl.addEventListener("click", openPdp);
+    }
+  });
+
+  // On page load: if ?product= param present, show product page
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var productName = params.get("product");
+    if (!productName) return;
+    productName = decodeURIComponent(productName);
+    var cards = document.querySelectorAll(".product-card");
+    var found = null;
+    cards.forEach(function(c){ if (c.dataset.name === productName) found = c; });
+    if (found) showProductPage(found);
+  })();
 </script>
 <a class="whatsapp-float" 
    href="https://wa.me/5492323297176?text=¡Hola%20Quimera%20Bags!%20Quería%20consultar%20sobre%20sus%20productos" 
@@ -3530,5 +3613,25 @@ document.addEventListener('DOMContentLoaded', function() {
   </svg>
 </a>
 
+
+  <!-- ── PRODUCT DETAIL PAGE ── -->
+  <div id="product-detail-page">
+    <div id="pdp-img-wrap">
+      <img id="pdp-img" alt="" />
+    </div>
+    <div id="pdp-info">
+      <a href="index.html" style="font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--stone);text-decoration:none;margin-bottom:0.5rem;">&#8592; Volver al catálogo</a>
+      <h1 id="pdp-name" style="font-family:var(--font-display);font-size:2.5rem;font-weight:300;color:var(--ink);margin:0;"></h1>
+      <p id="pdp-price" style="font-size:1.2rem;font-weight:600;color:var(--ink);margin:0;"></p>
+      <div id="pdp-colors"></div>
+      <div id="pdp-desc" style="font-size:0.92rem;line-height:1.8;color:var(--stone);"></div>
+      <button id="pdp-add-btn" onclick="addToCartFromPage()"
+              style="background:var(--stone);color:var(--cream);border:none;padding:0.9rem 1.5rem;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;width:100%;max-width:320px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar al pedido
+      </button>
+      <p id="pdp-added-msg" style="display:none;color:green;font-size:0.85rem;letter-spacing:0.1em;">&#10003; Agregado al pedido</p>
+    </div>
+  </div>
 </body>
 </html>
